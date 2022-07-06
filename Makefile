@@ -1,3 +1,9 @@
+composeup:
+	docker-compose up -d
+
+composedown:
+	docker-compose down	
+
 postgres:
 	docker run --name postgres12 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine 
 
@@ -8,12 +14,10 @@ dropdb:
 	docker exec -it postgres12 dropdb simple_bank
 
 migrateup:
-	docker run -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable up
-	# migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
-	# docker run -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable down 1
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable down -all
 
 sqlcinit:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc init
