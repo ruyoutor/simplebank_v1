@@ -13,11 +13,18 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb simple_bank
 
+migrate-create:
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ create -ext sql -dir /migrations -seq add_users
+
 migrateup:
-	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable up
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable up $(v)
 
 migratedown:
-	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable down -all
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable down $(v)
+
+migrateforce:
+	docker run --rm -v $(shell pwd)/db/migration:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable force $(v)
+
 
 sqlcinit:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc init
@@ -33,6 +40,7 @@ server:
 
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/ruyoutor/simplebank/db/sqlc Store
+
 
 .PHONY: postgres createdb dropdb migrateup migratedown sqlcinit sqlc test server mock
 	
